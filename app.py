@@ -52,24 +52,28 @@ def load_model():
     return model_cp
 
 @st.cache_data()
-def process_images(uploaded_file, channel_number, _model_cp):
+def process_images(uploaded_file, nuclei_channel_number, grooves_channel_number, _model_cp):
     st.write('Begin analysis of your images...')
     results = {}
     progress_text = "Processing file in progress... Please wait."
     my_bar = st.progress(0, text=progress_text)
 
     for idx, files in enumerate(uploaded_file):
-        with NamedTemporaryFile("wb", suffix=".tif") as f:
-            f.write(files.getvalue())
-            image_to_process = np.expand_dims(imread(f.name)[:, :, channel_number], axis=0)
-            p_image = preprocess_image(image_to_process)
+        io_read = io.BytesIO(files.read())
+        image = imread(io_read, plugin='tifffile')
+        image_to_process = np.expand_dims(image[:, :, nuclei_channel_number], axis=0)
+        if grooves_channel_number > -1:
+            grooves_ch = np.expand_dims(image[:, :, grooves_channel_number], axis=0)
+        else:
+            grooves_ch = None
+        p_image = preprocess_image(image_to_process, grooves_ch)
 
-            # st.image(expand_channels(p_image, channel_number))
-            with torch.inference_mode():
-                pred_mask, _, _ = _model_cp.eval(p_image, channels=[0, 0], diameter=48.11, normalize=True,
-                                                net_avg=False)
-                pred_mask = np.expand_dims(pred_mask, axis=0)
-            caged_or_not = classify_image(pred_mask)
+        # st.image(expand_channels(p_image, channel_number))
+        with torch.inference_mode():
+            pred_mask, _, _ = _model_cp.eval(p_image, channels=[0, 0], diameter=48.11, normalize=True,
+                                            net_avg=False)
+            pred_mask = np.expand_dims(pred_mask, axis=0)
+        caged_or_not = classify_image(pred_mask)
 
         results[idx] = {'p_image': p_image, 'pred_mask': pred_mask, 'caged_or_not': caged_or_not}
         my_bar.progress((idx + 1) / len(uploaded_file), text=f"Processed file {idx + 1} / {len(uploaded_file)}")
@@ -114,19 +118,21 @@ def main():
     if uploaded_file:
 
         st.sidebar.title("Channel to process")
-        max_channel = 0
-        if uploaded_file:
-            with NamedTemporaryFile("wb", suffix=".tif") as f:
-                f.write(uploaded_file[0].getvalue())
-                image = imread(f.name)
-                max_channel = image.shape[2] - 1
+        max_channel = 10
+        # if uploaded_file:
+        #     io_test = io.BytesIO(uploaded_file[0].read())
+        #     image_test = imread(io_test, plugin='tifffile')
+        #     max_channel = image_test.shape[2] - 1
+        
 
-        channel_number = st.sidebar.number_input("Channel", min_value=0, max_value=max_channel, value=0, step=1)
+        nuclei_channel_number = st.sidebar.number_input("Nuclei channel", min_value=0, max_value=max_channel, value=0, step=1)
+        grooves_channel_number = st.sidebar.number_input("Grooves channel for rotation (if image already horizontal, set to -1)", min_value=-1, max_value=max_channel, value=-1, step=1)
         st.sidebar.button("Analyze", on_click=click_button)
 
         if st.session_state.clicked:
 
-            results = process_images(uploaded_file, channel_number, model_cp)
+            results = process_images(uploaded_file, nuclei_channel_number, grooves_channel_number, model_cp)
+
             image_names = [img.name for img in uploaded_file]
 
             zip_data = io.BytesIO()
@@ -166,7 +172,7 @@ def main():
             processed_image = dict_entry["p_image"].transpose(1,2,0)
 
             st.write("##### Preprocessed image")
-            st.image(expand_channels(processed_image, channel_number))
+            st.image(expand_channels(processed_image, nuclei_channel_number))
 
             st.write("##### Nuclei segmentation")
             fig, ax = plt.subplots()

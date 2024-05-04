@@ -1,17 +1,18 @@
 import numpy as np
 from skimage import transform, exposure, restoration, feature, util
 
-def preprocess_image(image):
+def preprocess_image(image, grooves_ch):
     image = per_channel_scaling(image)
     image = apply_intensity_clipping(image)
     image = apply_denoising(image)
-    image = detect_and_rotate_angle(image)
+    if grooves_ch is not None:
+        image = detect_and_rotate_angle(image, grooves_ch)
     if image.ndim == 3:
         return util.img_as_ubyte(image)
     return image
 
 
-def detect_and_rotate_angle(video_frames, use_structure_tensor=False, num_frames_for_angle=5):
+def detect_and_rotate_angle(video_frames, grooves_ch, num_frames_for_angle=5):
     """
     Detects the rotation angle of a video based on Hough line transform
     from a subset of frames and rotates all frames accordingly.
@@ -26,9 +27,9 @@ def detect_and_rotate_angle(video_frames, use_structure_tensor=False, num_frames
     video_frames = np.array(video_frames)
 
     if video_frames.ndim == 4:
-        frames_for_angle = video_frames[:num_frames_for_angle, 0, :, :]
+        frames_for_angle = grooves_ch[:num_frames_for_angle, 0, :, :]
     else:
-        frames_for_angle = video_frames[:num_frames_for_angle]
+        frames_for_angle = grooves_ch[:num_frames_for_angle]
     average_angle = compute_average_angle(frames_for_angle)
     rotated_frames = np.zeros_like(video_frames)
 
@@ -89,7 +90,7 @@ def angle_from_orientation(orientation, use_structure_tensor=False):
     return angle
 
 
-def compute_average_angle(frames):
+def compute_average_angle(grooves_ch):
     """
     Computes the average rotation angle based on Hough line transform.
     Then rotates the image to have horizontal grooves based on structure tensor orientation.
@@ -103,7 +104,7 @@ def compute_average_angle(frames):
 
     angles = []
 
-    for frame in frames:
+    for frame in grooves_ch:
         edges = feature.canny(frame, sigma=2)
         h, theta, d = transform.hough_line(edges)
         hspace, hu_angle, dists = transform.hough_line_peaks(h, theta, d, num_peaks=60)
@@ -114,6 +115,7 @@ def compute_average_angle(frames):
     orientation = np.mean(angles)
     final_angle = angle_from_orientation(orientation)
 
+    print(orientation, final_angle)
     return final_angle
 
 
