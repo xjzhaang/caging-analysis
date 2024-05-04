@@ -133,7 +133,6 @@ def main():
                 for idx in range(len(image_names)):
                     result = results[image_names.index(image_names[idx])]
                     folder_name = f"{image_names[idx]}/"
-                    os.makedirs(folder_name, exist_ok=True)
                     p_image_data = io.BytesIO()
                     imsave(p_image_data, result["p_image"], plugin='tifffile')
                     z.writestr(f"{folder_name}preprocessed_image.tif", p_image_data.getvalue())
