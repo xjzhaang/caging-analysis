@@ -21,7 +21,7 @@ https://github.com/xjzhaang/caging-analysis/archive/refs/heads/main.zip
 cd caging-analysis
 ```
 
-### Install Environment (Optional)
+### Install Environment 
 #### Using Conda
 
 If you prefer using Conda for managing environments, you can create a Conda environment and install the dependencies.
@@ -38,12 +38,12 @@ pip install -r requirements.txt
 If you prefer not to use Conda, you can create a virtual environment using Python's built-in venv module.
 Create a virtual environment:
 ```bash
-python -m venv venv
+python -m venv caging
 
 #Activate the virtual environment (Windows)
-venv\Scripts\activate  
+source caging/bin/activate
 #Activate the virtual environment (Unix or MacOS)
-source venv/bin/activate
+source caging/bin/activate
 
 pip install -r requirements.txt
 ```
