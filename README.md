@@ -22,7 +22,7 @@ cd caging-analysis
 ```
 
 ### Install Environment 
-#### Using Conda
+#### Using Conda (Recommended)
 
 If you prefer using Conda for managing environments, you can create a Conda environment and install the dependencies.
 Create a Conda environment:
