@@ -54,3 +54,4 @@ To run the Streamlit app, execute the following command:
 ```bash
 streamlit run app.py
 ```
+This will start the Streamlit server, and you can view the app in your web browser at http://localhost:8501
