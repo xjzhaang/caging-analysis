@@ -1,11 +1,12 @@
 import numpy as np
 from skimage import transform, exposure, restoration, feature, util
-
+import streamlit as st
 def preprocess_image(image, grooves_ch):
     image = per_channel_scaling(image)
     image = apply_intensity_clipping(image)
     image = apply_denoising(image)
     if grooves_ch is not None:
+        grooves_ch = exposure.equalize_hist(grooves_ch)
         image = detect_and_rotate_angle(image, grooves_ch)
     if image.ndim == 3:
         return util.img_as_ubyte(image)
@@ -105,9 +106,10 @@ def compute_average_angle(grooves_ch):
     angles = []
 
     for frame in grooves_ch:
-        edges = feature.canny(frame, sigma=2)
+        edges = feature.canny(frame, sigma=5)
         h, theta, d = transform.hough_line(edges)
-        hspace, hu_angle, dists = transform.hough_line_peaks(h, theta, d, num_peaks=60)
+        hspace, hu_angle, dists = transform.hough_line_peaks(h, theta, d)
+
         orientation_rad = np.median(hu_angle)
         orientation_deg = np.rad2deg(orientation_rad)
         angles.append(orientation_deg)

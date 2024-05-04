@@ -117,7 +117,7 @@ def main():
     #CHANNEL SIDEBAR
     if uploaded_file:
 
-        st.sidebar.title("Channel to process")
+        st.sidebar.title("Select channels")
         max_channel = 10
         # if uploaded_file:
         #     io_test = io.BytesIO(uploaded_file[0].read())
@@ -126,7 +126,7 @@ def main():
         
 
         nuclei_channel_number = st.sidebar.number_input("Nuclei channel", min_value=0, max_value=max_channel, value=0, step=1)
-        grooves_channel_number = st.sidebar.number_input("Grooves channel for rotation (if image already horizontal, set to -1)", min_value=-1, max_value=max_channel, value=3, step=1)
+        grooves_channel_number = st.sidebar.number_input("Grooves channel for rotation calculation (if image already horizontal, set to -1)", min_value=-1, max_value=max_channel, value=3, step=1)
         st.sidebar.button("Analyze", on_click=click_button)
 
         if st.session_state.clicked:
@@ -175,22 +175,22 @@ def main():
             st.image(expand_channels(processed_image, nuclei_channel_number))
 
             st.write("##### Nuclei segmentation")
-            fig, ax = plt.subplots()
+            fig1, ax1 = plt.subplots()
             cmap_v = sns.color_palette("viridis", 24, as_cmap=True)
             cmap_v1 = cmap_v.copy()
             cmap_v1.colors[0] = [1, 1, 1, 1]
-            ax.imshow(dict_entry["pred_mask"][0], cmap=cmap_v1)
-            ax.axis('off')
-            st.pyplot(fig)
+            ax1.imshow(dict_entry["pred_mask"][0], cmap=cmap_v1)
+            ax1.axis('off')
+            st.pyplot(fig1)
 
             st.write("##### Caging analysis")
-            fig, ax = plt.subplots()
+            fig2, ax2 = plt.subplots()
             cmap_2 = sns.color_palette("hls", 3, as_cmap=True)
             cmap_v2 = cmap_2.copy()
             cmap_v2.colors[0] = [1, 1, 1, 1]
-            ax.imshow(dict_entry["caged_or_not"][0], cmap=cmap_v2)
-            ax.axis('off')
-            st.pyplot(fig)
+            ax2.imshow(dict_entry["caged_or_not"][0], cmap=cmap_v2)
+            ax2.axis('off')
+            st.pyplot(fig2)
 
 
 
