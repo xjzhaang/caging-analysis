@@ -1,13 +1,12 @@
 import numpy as np
 from skimage import transform, exposure, restoration, feature, util
-from structure_tensor import eig_special_2d, structure_tensor_2d
 from tqdm import tqdm
 
 def preprocess_image(image):
     image = per_channel_scaling(image)
     image = apply_intensity_clipping(image)
     image = apply_denoising(image)
-    image = detect_and_rotate_angle(image, use_structure_tensor=False)
+    image = detect_and_rotate_angle(image)
     if image.ndim == 3:
         return util.img_as_ubyte(image)
     return image
@@ -31,7 +30,7 @@ def detect_and_rotate_angle(video_frames, use_structure_tensor=False, num_frames
         frames_for_angle = video_frames[:num_frames_for_angle, 0, :, :]
     else:
         frames_for_angle = video_frames[:num_frames_for_angle]
-    average_angle = compute_average_angle(frames_for_angle, use_structure_tensor)
+    average_angle = compute_average_angle(frames_for_angle)
     rotated_frames = np.zeros_like(video_frames)
 
     for idx, frame in enumerate(video_frames):
@@ -91,7 +90,7 @@ def angle_from_orientation(orientation, use_structure_tensor=False):
     return angle
 
 
-def compute_average_angle(frames, use_structure_tensor=False):
+def compute_average_angle(frames):
     """
     Computes the average rotation angle based on Hough line transform.
     Then rotates the image to have horizontal grooves based on structure tensor orientation.
@@ -106,22 +105,15 @@ def compute_average_angle(frames, use_structure_tensor=False):
     angles = []
 
     for frame in frames:
-        if use_structure_tensor:
-            a = structure_tensor_2d(frame.astype(np.float32), sigma=7, rho=28)
-            val, vec = eig_special_2d(a)
-            ori = np.arctan2(vec[1], vec[0])
-            median_ori = np.rad2deg(np.median(ori))
-            angles.append(median_ori)
-        else:
-            edges = feature.canny(frame, sigma=2)
-            h, theta, d = transform.hough_line(edges)
-            hspace, hu_angle, dists = transform.hough_line_peaks(h, theta, d, num_peaks=60)
-            orientation_rad = np.median(hu_angle)
-            orientation_deg = np.rad2deg(orientation_rad)
-            angles.append(orientation_deg)
+        edges = feature.canny(frame, sigma=2)
+        h, theta, d = transform.hough_line(edges)
+        hspace, hu_angle, dists = transform.hough_line_peaks(h, theta, d, num_peaks=60)
+        orientation_rad = np.median(hu_angle)
+        orientation_deg = np.rad2deg(orientation_rad)
+        angles.append(orientation_deg)
 
     orientation = np.mean(angles)
-    final_angle = angle_from_orientation(orientation, use_structure_tensor=use_structure_tensor)
+    final_angle = angle_from_orientation(orientation)
 
     print(orientation, final_angle)
 
