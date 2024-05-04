@@ -41,7 +41,7 @@ Create a virtual environment:
 python -m venv caging
 
 #Activate the virtual environment (Windows)
-source caging/bin/activate
+caging\Scripts\activate
 #Activate the virtual environment (Unix or MacOS)
 source caging/bin/activate
 
