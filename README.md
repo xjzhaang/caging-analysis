@@ -18,7 +18,7 @@ https://github.com/xjzhaang/caging-analysis/archive/refs/heads/main.zip
 
 ### Navigate to the cloned directory
 ```bash
-cd streamlit-app
+cd caging-analysis
 ```
 
 ### Install Environment (Optional)
