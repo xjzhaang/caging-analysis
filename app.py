@@ -1,5 +1,5 @@
 import torch
-import os
+import time
 import warnings
 
 import streamlit as st
@@ -7,7 +7,6 @@ import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
 
-from tempfile import NamedTemporaryFile
 from skimage.io import imread, imsave
 from cellpose import models as cellpose_models
 
@@ -58,6 +57,7 @@ def process_images(uploaded_file, nuclei_channel_number, grooves_channel_number,
     progress_text = "Processing file in progress... Please wait."
     my_bar = st.progress(0, text=progress_text)
 
+    start_time = time.time()
     for idx, files in enumerate(uploaded_file):
         io_read = io.BytesIO(files.read())
         image = imread(io_read, plugin='tifffile')
@@ -76,7 +76,8 @@ def process_images(uploaded_file, nuclei_channel_number, grooves_channel_number,
         caged_or_not = classify_image(pred_mask)
 
         results[idx] = {'p_image': p_image, 'pred_mask': pred_mask, 'caged_or_not': caged_or_not}
-        my_bar.progress((idx + 1) / len(uploaded_file), text=f"Processed file {idx + 1} / {len(uploaded_file)}")
+        elapsed_time = time.time() - start_time
+        my_bar.progress((idx + 1) / len(uploaded_file), text=f"Processed file(s) {idx + 1} / {len(uploaded_file)}, Elapsed time: {elapsed_time:.2f} seconds")
     return results
 
 
