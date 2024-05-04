@@ -1,6 +1,5 @@
 import numpy as np
 from skimage import transform, exposure, restoration, feature, util
-from tqdm import tqdm
 
 def preprocess_image(image):
     image = per_channel_scaling(image)
@@ -115,8 +114,6 @@ def compute_average_angle(frames):
     orientation = np.mean(angles)
     final_angle = angle_from_orientation(orientation)
 
-    print(orientation, final_angle)
-
     return final_angle
 
 
@@ -166,7 +163,7 @@ def apply_intensity_clipping(image, clip_percentile=1.5, channel_to_process=1):
         # 3D Image (t, x, y)
         processed_image = np.zeros_like(image)
 
-        for t in tqdm(range(image.shape[0])):
+        for t in range(image.shape[0]):
             # Intensity clipping
             clip_max = np.percentile(image[t], 100 - clip_percentile)
             clipped_image = np.clip(image[t], 0, clip_max)
@@ -180,7 +177,7 @@ def apply_intensity_clipping(image, clip_percentile=1.5, channel_to_process=1):
 
         processed_image = np.copy(image)
 
-        for t in tqdm(range(image.shape[0])):
+        for t in range(image.shape[0]):
             # Intensity clipping for the specified channel
             clip_max = np.percentile(image[t, channel_to_process], 100 - clip_percentile)
             clipped_image = np.clip(image[t, channel_to_process], 0, clip_max)
@@ -209,7 +206,7 @@ def apply_denoising(image, weight=0.02, channel_to_process=1):
         # 3D Image (t, x, y)
         processed_image = np.zeros_like(image)
 
-        for t in tqdm(range(image.shape[0])):
+        for t in range(image.shape[0]):
             # Total variation denoising
             denoised_image = restoration.denoise_tv_chambolle(image[t], weight=weight)
             denoised_image = exposure.rescale_intensity(denoised_image, in_range='image', out_range='dtype')
@@ -223,7 +220,7 @@ def apply_denoising(image, weight=0.02, channel_to_process=1):
 
         processed_image = np.copy(image)
 
-        for t in tqdm(range(image.shape[0])):
+        for t in range(image.shape[0]):
             # Total variation denoising for the specified channel
             denoised_image = restoration.denoise_tv_chambolle(image[t, channel_to_process], weight=weight)
             denoised_image = exposure.rescale_intensity(denoised_image, in_range='image', out_range='dtype')

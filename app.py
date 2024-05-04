@@ -171,15 +171,18 @@ def main():
             st.write("##### Nuclei segmentation")
             fig, ax = plt.subplots()
             cmap_v = sns.color_palette("viridis", 24, as_cmap=True)
-            cmap_ = cmap_v.copy()
-            cmap_.colors[0] = [1, 1, 1, 1]
-            ax.imshow(dict_entry["pred_mask"][0], cmap=cmap_)
+            cmap_v1 = cmap_v.copy()
+            cmap_v1.colors[0] = [1, 1, 1, 1]
+            ax.imshow(dict_entry["pred_mask"][0], cmap=cmap_v1)
             ax.axis('off')
             st.pyplot(fig)
 
             st.write("##### Caging analysis")
             fig, ax = plt.subplots()
-            ax.imshow(dict_entry["caged_or_not"][0], cmap=cmap_)
+            cmap_2 = sns.color_palette("hls", 3, as_cmap=True)
+            cmap_v2 = cmap_2.copy()
+            cmap_v2.colors[0] = [1, 1, 1, 1]
+            ax.imshow(dict_entry["caged_or_not"][0], cmap=cmap_v2)
             ax.axis('off')
             st.pyplot(fig)
 
