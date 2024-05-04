@@ -95,8 +95,8 @@ def find_caged_nucleus(dataframe, video):
 
         # Assign cluster labels to each object in the labeled image
         for index, row in frame_0_data.iterrows():
-            coords = row["coords"]
-            conditions = ((row["minor_axis_length"] <= 26.5 and
+            #coords = row["coords"]
+            conditions = ((row["minor_axis_length"] <= 24 and
                           np.abs(row["orientation"]) >= 1.47 and
                           row["extent"] >= 0.745 and
                           row["major_axis_length"] / row["minor_axis_length"] >= 2.0)

@@ -150,7 +150,7 @@ def per_channel_scaling(image):
     return scaled_image
 
 
-def apply_intensity_clipping(image, clip_percentile=1.5, channel_to_process=1):
+def apply_intensity_clipping(image, clip_percentile=1, channel_to_process=1):
     """
     Apply intensity clipping and total variation denoising to a 3D or 4D image.
 
