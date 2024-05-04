@@ -126,7 +126,7 @@ def main():
         
 
         nuclei_channel_number = st.sidebar.number_input("Nuclei channel", min_value=0, max_value=max_channel, value=0, step=1)
-        grooves_channel_number = st.sidebar.number_input("Grooves channel for rotation (if image already horizontal, set to -1)", min_value=-1, max_value=max_channel, value=-1, step=1)
+        grooves_channel_number = st.sidebar.number_input("Grooves channel for rotation (if image already horizontal, set to -1)", min_value=-1, max_value=max_channel, value=3, step=1)
         st.sidebar.button("Analyze", on_click=click_button)
 
         if st.session_state.clicked:
