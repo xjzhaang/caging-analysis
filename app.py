@@ -106,6 +106,7 @@ def main():
         st.session_state["file_uploader_key"] += 1
         st.session_state.clicked = False
         st.cache_data.clear()
+        st.cache_resource.clear()
         st.rerun()
 
 
