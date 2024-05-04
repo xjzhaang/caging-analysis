@@ -43,15 +43,18 @@ def expand_channels(image, channel_index):
 def click_button():
     st.session_state.clicked = True
 
-
-@st.cache_data()
-def process_images(uploaded_file, channel_number):
-    st.write('Begin analysis of your images...')
-    results = {}
+@st.cache_resource()
+def load_model():
     model_cp = cellpose_models.CellposeModel(
         gpu=True if torch.cuda.is_available() else False,
         pretrained_model="./src/cellpose_model/CP_myo",
     )
+    return model_cp
+
+@st.cache_data()
+def process_images(uploaded_file, channel_number, _model_cp):
+    st.write('Begin analysis of your images...')
+    results = {}
     progress_text = "Processing file in progress... Please wait."
     my_bar = st.progress(0, text=progress_text)
 
@@ -63,7 +66,7 @@ def process_images(uploaded_file, channel_number):
 
             # st.image(expand_channels(p_image, channel_number))
             with torch.inference_mode():
-                pred_mask, _, _ = model_cp.eval(p_image, channels=[0, 0], diameter=48.11, normalize=True,
+                pred_mask, _, _ = _model_cp.eval(p_image, channels=[0, 0], diameter=48.11, normalize=True,
                                                 net_avg=False)
                 pred_mask = np.expand_dims(pred_mask, axis=0)
             caged_or_not = classify_image(pred_mask)
@@ -74,6 +77,7 @@ def process_images(uploaded_file, channel_number):
 
 
 def main():
+    model_cp = load_model()
     st.write("## Caging analyzer for microgroove images")
 
     #Upload SIDEBAR
@@ -86,7 +90,6 @@ def main():
     st.sidebar.title("Upload Images")
     uploaded_file = st.sidebar.file_uploader("uploade",type=["jpg", "jpeg", "png", "tif"],
                                              accept_multiple_files=True, key=st.session_state["file_uploader_key"],label_visibility="hidden")
-
 
 
     if uploaded_file:
@@ -122,12 +125,9 @@ def main():
 
         if st.session_state.clicked:
 
-            results = process_images(uploaded_file, channel_number)
+            results = process_images(uploaded_file, channel_number, model_cp)
             image_names = [img.name for img in uploaded_file]
 
-
-            #if st.button("Download Zip"):
-                # Create in-memory byte streams for each image
             zip_data = io.BytesIO()
             with zipfile.ZipFile(zip_data, mode="w") as z:
                 for idx in range(len(image_names)):

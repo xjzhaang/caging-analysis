@@ -33,7 +33,7 @@ def inference_loop(dataloader, model):
     with torch.inference_mode():
         for batch, data in tqdm(enumerate(dataloader), total=len(dataloader)):
             image = data['image'].numpy()
-            pred_mask, _, _ = model.eval(image, channels=[0,0], diameter=48.11, normalize=True, net_avg=False)
+            pred_mask, _, _ = model.eval(image, channels=[0, 0], diameter=48.11, normalize=True, net_avg=False)
 
             # regions = regionprops(pred_mask)
             # filtered_mask = np.zeros_like(pred_mask)
