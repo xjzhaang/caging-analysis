@@ -1,17 +1,23 @@
 import torch
+import os
+import warnings
+
 import streamlit as st
 import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
 
 from tempfile import NamedTemporaryFile
-from skimage.io import imread
+from skimage.io import imread, imsave
 from cellpose import models as cellpose_models
 
 from src.preprocessing_utils import preprocess_image
 from src.classify_caging import classify_image
 
+import io
+import zipfile
 
+warnings.filterwarnings("ignore")
 st.set_page_config(
     page_title="Caging Analyzer",
     page_icon="🔬",
@@ -118,10 +124,45 @@ def main():
 
             results = process_images(uploaded_file, channel_number)
             image_names = [img.name for img in uploaded_file]
+
+
+            #if st.button("Download Zip"):
+                # Create in-memory byte streams for each image
+            zip_data = io.BytesIO()
+            with zipfile.ZipFile(zip_data, mode="w") as z:
+                for idx in range(len(image_names)):
+                    result = results[image_names.index(image_names[idx])]
+                    folder_name = f"{image_names[idx]}/"
+                    os.makedirs(folder_name, exist_ok=True)
+                    p_image_data = io.BytesIO()
+                    imsave(p_image_data, result["p_image"], plugin='tifffile')
+                    z.writestr(f"{folder_name}preprocessed_image.tif", p_image_data.getvalue())
+
+                    pred_mask_data = io.BytesIO()
+                    imsave(pred_mask_data, result["pred_mask"], plugin='tifffile')
+                    z.writestr(f"{folder_name}segmentation_image.tif", pred_mask_data.getvalue())
+
+                    caged_or_not_data = io.BytesIO()
+                    caged_or_not_image = np.uint8(result["caged_or_not"])
+                    imsave(caged_or_not_data, caged_or_not_image, plugin='tifffile')
+                    z.writestr(f"{folder_name}caging_image.tif", caged_or_not_data.getvalue())
+
+                # Set the position to the beginning of the stream
+                zip_data.seek(0)
+
+                # Provide the download link to the zip file
+                st.download_button(
+                    label="Download Zip Outputs",
+                    data=zip_data,
+                    file_name="results.zip",
+                    mime="application/zip",
+                    type="primary",
+                )
+
             view_images = st.selectbox("#### Select an image to view:", image_names)
             selected_index = image_names.index(view_images)
-            dict_entry = results[selected_index]
 
+            dict_entry = results[selected_index]
             processed_image = dict_entry["p_image"].transpose(1,2,0)
 
             st.write("##### Preprocessed image")
@@ -143,25 +184,7 @@ def main():
             st.pyplot(fig)
 
 
-   #status_text.write(f"Finished preprocessing file {idx + 1} / {len(uploaded_file)}")
 
-                    # fig, ax = plt.subplots()
-                    # cmap_v = sns.color_palette("viridis", 24, as_cmap=True)
-                    # cmap_ = cmap_v.copy()
-                    # cmap_.colors[0] = [1, 1, 1, 1]
-                    # ax.imshow(pred_mask, cmap=cmap_)
-                    # ax.axis('off')
-                    # st.pyplot(fig)
-
-
-
-                    # fig, ax = plt.subplots()
-                    # cmap_v = sns.color_palette("viridis", 24, as_cmap=True)
-                    # cmap_ = cmap_v.copy()
-                    # cmap_.colors[0] = [1, 1, 1, 1]
-                    # ax.imshow(caged_or_not[0], cmap=cmap_)
-                    # ax.axis('off')
-                    # st.pyplot(fig)
 
 if __name__ == '__main__':
     main()

@@ -7,7 +7,7 @@ from tqdm import tqdm
 def classify_image(image):
     df_all = create_object_labels(image)
     final_label_image = find_caged_nucleus(df_all, image)
-    channel_0_2_normalized = (final_label_image * (255 / 2)).astype(np.uint8)
+    channel_0_2_normalized = final_label_image.astype(np.uint8)
     return channel_0_2_normalized
 
 
@@ -27,6 +27,7 @@ def is_near_border(x, y, distance, image_shape):
     border_distance_x = min(x, image_shape[1] - x)
     border_distance_y = min(y, image_shape[0] - y)
     return border_distance_x < distance or border_distance_y < distance
+
 
 def create_object_labels(video_data):
     """
