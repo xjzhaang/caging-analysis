@@ -39,8 +39,8 @@ def expand_channels(image, channel_index):
     return expanded_image
 
 
-def click_button():
-    st.session_state.clicked = True
+# def click_button():
+#     st.session_state.clicked = True
 
 @st.cache_resource()
 def load_model():
@@ -104,12 +104,12 @@ def main():
     if not uploaded_file:
         st.write("### :arrow_left: Upload an image on the left to begin!")
 
-    if 'clicked' not in st.session_state:
-        st.session_state.clicked = False
+    # if 'clicked' not in st.session_state:
+    #     st.session_state.clicked = False
 
     if st.sidebar.button("Clear all"):
         st.session_state["file_uploader_key"] += 1
-        st.session_state.clicked = False
+        # st.session_state.clicked = False
         st.cache_data.clear()
         st.cache_resource.clear()
         st.rerun()
@@ -128,9 +128,10 @@ def main():
 
         nuclei_channel_number = st.sidebar.number_input("Nuclei channel", min_value=0, max_value=max_channel, value=0, step=1)
         grooves_channel_number = st.sidebar.number_input("Grooves channel for rotation calculation (if image already horizontal, set to -1)", min_value=-1, max_value=max_channel, value=3, step=1)
-        st.sidebar.button("Analyze", on_click=click_button)
+        #st.sidebar.button("Analyze", on_click=click_button)
 
-        if st.session_state.clicked:
+        #if st.session_state.clicked:
+        if st.sidebar.button("Analyze"):
 
             results = process_images(uploaded_file, nuclei_channel_number, grooves_channel_number, model_cp)
 
