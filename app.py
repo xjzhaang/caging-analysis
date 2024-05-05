@@ -193,6 +193,8 @@ def main():
             ax2.imshow(dict_entry["caged_or_not"][0], cmap=cmap_v2)
             ax2.axis('off')
             st.pyplot(fig2)
+        else:
+            st.cache_data.clear()
 
 
 
