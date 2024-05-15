@@ -6,9 +6,9 @@ from tqdm import tqdm
 
 def classify_image(image):
     df_all = create_object_labels(image)
-    final_label_image = find_caged_nucleus(df_all, image)
+    final_label_image, caged_df = find_caged_nucleus(df_all, image)
     channel_0_2_normalized = final_label_image.astype(np.uint8)
-    return channel_0_2_normalized
+    return channel_0_2_normalized, caged_df
 
 
 def is_near_border(x, y, distance, image_shape):
@@ -86,7 +86,8 @@ def create_object_labels(video_data):
 def find_caged_nucleus(dataframe, video):
 
     caged_video = np.zeros_like(video)
-
+    caged_count = 0
+    stats_df = {}
     for frame_id in tqdm(range(dataframe['frame_index'].max() + 1)):
         frame_0_data = dataframe[dataframe['frame_index'] == frame_id]
 
@@ -108,6 +109,10 @@ def find_caged_nucleus(dataframe, video):
 
             labeled_image[video[frame_id] == original_label] = label_value
 
+            if label_value == 2:
+                caged_count += 1
+
         caged_video[frame_id, :, :] = labeled_image
 
-    return caged_video
+        stats_df = {"Total nuclei count": frame_0_data.shape[0], "Caged nuclei count": caged_count, "Caging ratio": caged_count/frame_0_data.shape[0]}
+    return caged_video, stats_df

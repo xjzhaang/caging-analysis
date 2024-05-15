@@ -4,6 +4,7 @@ import warnings
 
 import streamlit as st
 import numpy as np
+import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 
@@ -73,9 +74,9 @@ def process_images(uploaded_file, nuclei_channel_number, grooves_channel_number,
             pred_mask, _, _ = _model_cp.eval(p_image, channels=[0, 0], diameter=48.11, normalize=True,
                                             net_avg=False)
             pred_mask = np.expand_dims(pred_mask, axis=0)
-        caged_or_not = classify_image(pred_mask)
+        caged_or_not, caged_df = classify_image(pred_mask)
 
-        results[idx] = {'p_image': p_image, 'pred_mask': pred_mask, 'caged_or_not': caged_or_not}
+        results[idx] = {'p_image': p_image, 'pred_mask': pred_mask, 'caged_or_not': caged_or_not, "caging_data": caged_df}
         elapsed_time = time.time() - start_time
         my_bar.progress((idx + 1) / len(uploaded_file), text=f"Processed file(s) {idx + 1} / {len(uploaded_file)}, Elapsed time: {elapsed_time:.2f} seconds")
     return results
@@ -131,6 +132,7 @@ def main():
 
             image_names = [img.name for img in uploaded_file]
 
+            df = pd.DataFrame(columns=["File name", "Total nuclei count", "Caged nuclei count", "Caging ratio"])
             zip_data = io.BytesIO()
             with zipfile.ZipFile(zip_data, mode="w") as z:
                 for idx in range(len(image_names)):
@@ -149,6 +151,12 @@ def main():
                     imsave(caged_or_not_data, caged_or_not_image, plugin='tifffile')
                     z.writestr(f"{folder_name}caging_image.tif", caged_or_not_data.getvalue())
 
+                    caged_data = result["caged_data"]
+                    caged_data["File name"] = image_names[idx]
+                    df.append(caged_data, ignore_index=True)
+
+                csv_data = df.to_csv(index=False)
+                z.writestr(f"caging_data.csv", csv_data)
                 # Set the position to the beginning of the stream
                 zip_data.seek(0)
 
